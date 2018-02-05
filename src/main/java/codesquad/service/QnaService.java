@@ -1,9 +1,11 @@
 package codesquad.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import codesquad.dto.QuestionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
@@ -40,14 +42,16 @@ public class QnaService {
         return questionRepository.findOne(id);
     }
 
-    public Question update(User loginUser, long id, Question updatedQuestion) {
-        // TODO 수정 기능 구현
-        return null;
+    public Question updateQuestion(Long id, User loginUser, QuestionDto questionDto) {
+        Question question = questionRepository.findOne(id);
+        question.update(loginUser, questionDto);
+        return questionRepository.save(question);
     }
 
     @Transactional
-    public void deleteQuestion(User loginUser, long questionId) throws CannotDeleteException {
-        // TODO 삭제 기능 구현
+    public Question deleteQuestion(User loginUser, Question deletedQuestion) {
+        deletedQuestion.delete(loginUser);
+        return questionRepository.save(deletedQuestion);
     }
 
     public Iterable<Question> findAll() {
@@ -55,11 +59,17 @@ public class QnaService {
     }
 
     public List<Question> findAll(Pageable pageable) {
-        return questionRepository.findAll(pageable).getContent();
+        return questionRepository
+                .findAll(pageable)
+                .getContent()
+                .stream()
+                .filter(question -> !question.isDeleted())
+                .collect(Collectors.toList());
     }
 
     public Answer addAnswer(User loginUser, long questionId, String contents) {
-        return null;
+        Question question = questionRepository.findOne(questionId);
+        return answerRepository.save(new Answer(questionId, loginUser, question, contents));
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
