@@ -26,6 +26,7 @@ public class QuestionValidationTest {
     private Question question;
     private QuestionDto questionDto;
     private User user2;
+
     @BeforeClass
     public static void setup() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();

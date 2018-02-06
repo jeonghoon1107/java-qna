@@ -42,16 +42,17 @@ public class QnaService {
         return questionRepository.findOne(id);
     }
 
+    @Transactional
     public Question updateQuestion(Long id, User loginUser, QuestionDto questionDto) {
         Question question = questionRepository.findOne(id);
         question.update(loginUser, questionDto);
-        return questionRepository.save(question);
+        return question;
     }
 
     @Transactional
     public Question deleteQuestion(User loginUser, Question deletedQuestion) {
         deletedQuestion.delete(loginUser);
-        return questionRepository.save(deletedQuestion);
+        return deletedQuestion;
     }
 
     public Iterable<Question> findAll() {
@@ -67,13 +68,16 @@ public class QnaService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public Answer addAnswer(User loginUser, long questionId, String contents) {
         Question question = questionRepository.findOne(questionId);
-        return answerRepository.save(new Answer(questionId, loginUser, question, contents));
+        Answer answer = new Answer(questionId, loginUser, question, contents);
+        question.addAnswer(answer);
+        return answer;
     }
 
     public Answer deleteAnswer(User loginUser, long id) {
-        // TODO 답변 삭제 기능 구현 
+
         return null;
     }
 }
