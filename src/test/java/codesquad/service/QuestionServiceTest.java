@@ -1,5 +1,7 @@
 package codesquad.service;
 
+import codesquad.CannotDeleteException;
+import codesquad.UnAuthorizedException;
 import codesquad.domain.Question;
 import codesquad.domain.QuestionRepository;
 import codesquad.domain.User;
@@ -30,11 +32,13 @@ public class QuestionServiceTest {
 
     private Question question;
     private User user;
+    private User wrongUser;
 
     @Before
     public void setup() {
         question = new Question("title", "contents");
-        user = new User("test", "test", "test", "test");
+        user = new User(0, "test", "test", "test", "test");
+        wrongUser = new User(1,"test2", "test2", "test2", "test2");
         question.writeBy(user);
     }
 
@@ -47,6 +51,14 @@ public class QuestionServiceTest {
         assertThat(qnaService.findById(3L).getTitle(), is("abc"));
     }
 
+    @Test(expected = UnAuthorizedException.class)
+    public void UnAuthorizedException_테스트() {
+        when((questionRepository.findOne(3L))).thenReturn(question);
+
+        qnaService.updateQuestion(3L, wrongUser, new QuestionDto("abc", "abc"));
+    }
+
+
     @Test
     public void delete() {
         when((questionRepository.findOne(3L))).thenReturn(question);
@@ -54,5 +66,12 @@ public class QuestionServiceTest {
         qnaService.deleteQuestion(user, qnaService.findById(3L));
 
         assertTrue(qnaService.findById(3L).isDeleted());
+    }
+
+    @Test(expected = CannotDeleteException.class)
+    public void CannotDeleteException_테스트() {
+        when((questionRepository.findOne(3L))).thenReturn(question);
+
+        qnaService.deleteQuestion(wrongUser, qnaService.findById(3L));
     }
 }
